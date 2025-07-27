@@ -13,7 +13,9 @@ import {authorize} from "./middleware/authoriz.js";
 
 export const launchserver = () => {
     const logstream = fs.createWriteStream("launchserver.log");
-    const PORT = 3005;
+    const PORT = process.env.SERVER_PORT || 3000;
+    const HOST=process.env.SERVERS_HOST || `localhost:`;
+
     const app = express();
 
     const server = http.createServer(app);
@@ -49,6 +51,6 @@ export const launchserver = () => {
     app.use(errorHandler);
 
     server.listen(PORT, () => {
-        console.log(`http://localhost:${PORT}`);
+        console.log(`${HOST}${PORT}`);
     });
 };
