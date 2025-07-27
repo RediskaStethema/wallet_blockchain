@@ -1,9 +1,32 @@
-почему MySQL:
-Реляционные данные
-Оптимизирован для высоких нагрузок и справляется с большим количеством транзакций.
-Поддерживает репликацию (мастер-слейв), шардирование и прочие способы масштабирования.
+A USDT TRC-20 Payment System built with Node.js + TypeScript, using MySQL, WebSocket, TronWeb, and authentication via JWT or Basic Auth.
+This backend project supports:
+User registration and login
+TRC-20 wallet creation
+Balance and transaction tracking
+Role-based access control (USER, ADMIN)
+Admin features via API
+Live transaction updates  WebSocket
+Dual authentication: Bearer (JWT) and Basic Auth
 
-.env config const
+Tech Stack
+Node.js, Express.js
+TypeScript
+MySQL with mysql2
+JWT, bcrypt
+TronWeb for TRC-20
+WebSocket (ws)
+Joi for input validation
+dotenv for environment config
+
+
+
+
+Why MySQL:
+Relational data
+Optimized for high costs and handles large numbers of transactions.
+Supports replication (master-slave), sharding, and other scaling methods.
+
+.env config constants
 DB_HOST=localhost
 DB_PORT=***
 DB_NAME=***
@@ -18,7 +41,7 @@ IV_LENGTH = **
 
 
 
-
+DB structure
 -- CreateDB
 DROP DATABASE IF EXISTS payment_system;
 CREATE DATABASE payment_system CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
