@@ -38,7 +38,8 @@ JWT_EXP=1h
 SECRET_KEY=***
 USDT_CONTR=***
 IV_LENGTH = **
-
+SERVERS_HOST=***
+SERVER_PORT=***
 
 
 DB structure
