@@ -27,7 +27,7 @@ Optimized for high costs and handles large numbers of transactions.
 Supports replication (master-slave), sharding, and other scaling methods.
 
 .env config constants
-DB_HOST=localhost
+DB_HOST=***
 DB_PORT=***
 DB_NAME=***
 DB_USER=***
