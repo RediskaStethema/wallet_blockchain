@@ -18,7 +18,7 @@ WebSocket (ws)
 Joi for input validation
 dotenv for environment config
 
-
+QUICK START: npm start
 
 
 Why MySQL:
