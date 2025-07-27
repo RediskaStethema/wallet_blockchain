@@ -1,5 +1,5 @@
 import {NextFunction, Request, Response} from "express";
-import {WallError} from "../models/types";
+import {WallError} from "../models/types.js";
 
 
 export const errorHandler = (err:Error, req:Request, res:Response, next:NextFunction) => {

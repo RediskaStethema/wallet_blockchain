@@ -1,7 +1,7 @@
 import express from "express";
-import {AdminController} from "../controllers/AdminController";
+import {AdminController} from "../controllers/AdminController.js";
 import asyncHandler from "express-async-handler";
-import {AuthReq, Role} from "../models/modeles";
+import {AuthReq, Role} from "../models/modeles.js";
 
 export const adminRouter=express.Router()
 const adminController= new AdminController()
@@ -11,6 +11,17 @@ adminRouter.get(
     asyncHandler(async (req: AuthReq, res) => {
         const users = await adminController.getAllUsers();
         res.json(users);
+    })
+);
+adminRouter.post(
+    '/register',
+    asyncHandler(async (req, res) => {
+        const {email, password}= req.body;
+        if(!email || !password){
+            throw new Error("invalid email or password");
+        }
+        const result = await adminController.registerAdmin(email,password);
+        res.json(result);
     })
 );
 
@@ -109,7 +120,7 @@ adminRouter.get(
     })
 );
 
-// Обновить статус транзакции
+
 adminRouter.put(
     '/transactions/:txId/status',
     asyncHandler(async (req: AuthReq, res) => {

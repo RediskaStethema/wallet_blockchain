@@ -1,7 +1,14 @@
 import express from "express";
-import {UserController} from "../controllers/UserController";
-import {authorize} from "../middleware/authoriz";
-import {AuthReq, changePasswordSchema, loginSchema, registerSchema, Role, updateProfileSchema} from "../models/modeles";
+import {UserController} from "../controllers/UserController.js";
+import {
+        AuthReq,
+        changePasswordSchema,
+        loginSchema,
+        RegisterDto,
+        registerSchema,
+        Role,
+        updateProfileSchema
+} from "../models/modeles.js";
 import asyncHandler from 'express-async-handler';
 
 export const userRouter=express.Router()
@@ -11,10 +18,9 @@ userRouter.post(
     asyncHandler(async (req: AuthReq, res): Promise<void> => {
         const { error } = registerSchema.validate(req.body);
         if (error) res.status(400).json({ error: error.details[0].message });
-        const email=req.body.email;
-        const password=req.body.password;
-        if(!email||!password) res.status(400).json({ error:`no password or login` });
-        const result = await controller.register(email, password);
+        const data:RegisterDto=req.body;
+        if(!data) res.status(400).json({ error:`no password or login` });
+        const result = await controller.register(data.email, data.password);
           res.json(result);
     })
 );
@@ -63,7 +69,7 @@ userRouter.put(
         const { error } = changePasswordSchema.validate(req.body);
         if (error)  res.status(400).json({ error: error.details[0].message });
         const { oldPass, newPass } = req.body;
-        if(oldPass!||!newPass) res.status(401).json({ error: 'no old pass or new pass' });
+        if(!oldPass!||!newPass) res.status(401).json({ error: 'no old pass or new pass' });
         await controller.changePassword(data, oldPass, newPass);
         res.status(204).end();
     })
@@ -71,7 +77,6 @@ userRouter.put(
 
 userRouter.post(
     '/wallets',
-    authorize([Role.USER, Role.ADMIN]),
     asyncHandler(async (req: AuthReq, res) => {
         const data=req.user!.userId as number;
         if (!data) res.status(401).json({ error: 'Unauthorized' });

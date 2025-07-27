@@ -1,9 +1,10 @@
-import {DataWall, IPaymentService, OrderData, PaymentData, PaymentStatus, pool} from "../models/modeles";
+import {DataWall, IPaymentService, OrderData, PaymentData, PaymentStatus, pool} from "../models/modeles.js";
 import TronWeb from "tronweb";
 import axios from 'axios';
-import {encryptPrivateKey} from "../utils/tools";
+import {encryptPrivateKey, USDT_CONTRACT} from "../utils/tools.js";
 
-const USDT_CONTRACT = 'TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj'
+
+
 
 
 export class PaymentService implements IPaymentService {
@@ -49,22 +50,22 @@ export class PaymentService implements IPaymentService {
     }
 
     async createWalletForOrder(orderId: number): Promise<DataWall> {
-        // 1. Генерация аккаунта TRON
+
         const account = await this.tronWeb.createAccount();
         const walletAddress = account.address.base58;
         const privateKey = account.privateKey;
 
-        // 2. Шифрование приватного ключа
+
         const encryptedPrivateKey = encryptPrivateKey(privateKey);
 
-        // 3. Сохранение в БД
+
         const [result] = await pool.query(
             "INSERT INTO wallets (order_id, address, private_key, created_at) VALUES (?, ?, ?, NOW())",
             [orderId, walletAddress, encryptedPrivateKey]
         );
         const walletId = (result as any).insertId;
 
-        // 4. Получение и возврат
+
         const [rows] = await pool.query("SELECT * FROM wallets WHERE id = ?", [walletId]);
         return (rows as DataWall[])[0];
     }
@@ -121,7 +122,8 @@ export class PaymentService implements IPaymentService {
         });
     }
 
-    async pollIncomingTransactions(): Promise<void> {
+    async pollIncomingTransactions(): Promise<PaymentData[]> {
+        const newPayments: PaymentData[] = [];
         const [wallets] = await pool.query("SELECT * FROM wallets");
 
         for (const wallet of wallets as DataWall[]) {
@@ -138,42 +140,43 @@ export class PaymentService implements IPaymentService {
 
                 for (const event of events) {
                     const txId = event.transaction_id;
-                    const amount = parseFloat(event.result.value) / 1e6;
 
-                    // Проверка, существует ли уже эта транзакция в базе
                     const [existing] = await pool.query(
                         "SELECT id FROM payments WHERE tx_id = ?",
                         [txId]
                     );
                     if ((existing as any[]).length > 0) continue;
 
-                    // Сохранение новой входящей транзакции как Pending
-                    await pool.query(
+                    const amount = parseFloat(event.result.value) / 1e6;
+
+                    const [insertResult] = await pool.query(
                         "INSERT INTO payments (address, tx_id, amount, status, created_at) VALUES (?, ?, ?, ?, NOW())",
                         [wallet.address, txId, amount, PaymentStatus.Pending]
                     );
 
-                    // Получение связанного заказа
-                    if (!wallet.orderId) {
-                        console.warn(`Wallet ${wallet.address} не привязан к заказу.`);
-                        continue;
-                    }
-                    const order = await this.getOrderById(wallet.orderId);
+                    const insertId = (insertResult as any).insertId;
 
-                    // Проверка, достаточно ли средств для подтверждения
-                    if (amount >= order.amount) {
-                        await this.confirmTransaction(txId);
-                        await this.updateOrderStatus(order.id, PaymentStatus.Confirmed);
-                        await this.notify(order.id);
+                    // Получаем полный PaymentData вставленной записи
+                    const [rows] = await pool.query(
+                        "SELECT id, wallet_id AS walletId, tx_id AS txId, amount, status, created_at AS createdAt FROM payments WHERE id = ?",
+                        [insertId]
+                    );
+                    const payment = (rows as PaymentData[])[0];
+
+                    if (payment) {
+                        newPayments.push(payment);
                     }
 
-                    console.log(`💰 Обнаружен входящий платеж ${amount} USDT → ${wallet.address}`);
+
                 }
             } catch (err) {
                 console.error(`Ошибка при опросе кошелька ${wallet.address}:`, err);
             }
         }
+
+        return newPayments;
     }
+
 
 
 

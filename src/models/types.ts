@@ -1,5 +1,7 @@
+import {Role, TransactionStatus} from "./modeles.js";
 
-export type WallError = {status:number, message:string}
+export type WallError = {status:number,
+    message:string}
 
 export type WalletData = {
     id: number;
@@ -18,8 +20,9 @@ export type TransactionData = {
     id: number;
     txId: string;
     amount: number;
-    status: 'pending' | 'confirmed' | 'failed';
+    status: TransactionStatus ;
     createdAt: Date;
+    wallet?: string
 };
 
 export type UpdateProfileDto = {
@@ -27,4 +30,10 @@ export type UpdateProfileDto = {
     username?: string;
 };
 
+export type AdminEmp={
+    id: number,
+    email: string,
+    role:Role,
+    token: string,
 
+}

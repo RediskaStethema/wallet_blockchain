@@ -1,13 +1,9 @@
-import {IUserService, pool, Role} from "../models/modeles";
-import {TransactionData, UpdateProfileDto, UserProfile, WalletData} from "../models/types";
+import {IUserService, pool, Role} from "../models/modeles.js";
+import {TransactionData, UpdateProfileDto, UserProfile, WalletData} from "../models/types.js";
 import bcrypt from "bcrypt";
-
 import jwt from "jsonwebtoken";
-import {configurations} from "../utils/tools";
+import {configurations, createToken} from "../utils/tools.js";
 import TronWeb from 'tronweb';
-
-
-
 
 export class UserService implements IUserService {
     private tronWeb: TronWeb;
@@ -21,7 +17,7 @@ export class UserService implements IUserService {
 
         const hash = await bcrypt.hash(password, 10);
 
-        // 👇 Добавим роль USER при регистрации
+
         const [result] = await pool.query(
             'INSERT INTO users (email, password, role) VALUES (?, ?, ?)',
             [email, hash, Role.USER]
@@ -30,7 +26,7 @@ export class UserService implements IUserService {
         const insertResult = result as any;
         const userId = insertResult.insertId;
 
-        const token = jwt.sign({ userId, role: Role.USER }, configurations.jwt.secret, { expiresIn: '7d' });
+        const token = createToken(userId, Role.USER);
         return { token };
     }
 
@@ -42,11 +38,7 @@ export class UserService implements IUserService {
         const match = await bcrypt.compare(password, user.password);
         if (!match) throw new Error('Invalid password');
 
-        const token = jwt.sign(
-            { userId: user.id, role: user.role as Role },
-            configurations.jwt.secret,
-            { expiresIn: '7d' }
-        );
+        const token = createToken(user.id, user.role as Role)
 
         return { token };
     }

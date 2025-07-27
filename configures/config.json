@@ -1,0 +1,42 @@
+{
+  "paths_skips": [
+    "POST /api/user/register",
+    "POST /api/user/login",
+    "GET /api/health/select",
+    "GET /api/health/public"
+  ],
+  "pathroles": {
+    "GET /api/admin/users": ["ADMIN"],
+    "GET /api/admin/users/:id": ["ADMIN"],
+    "PUT /api/admin/users/:id/role": ["ADMIN"],
+    "DELETE /api/admin/users/:id": ["ADMIN"],
+
+    "GET /api/admin/wallets": ["ADMIN"],
+    "GET /api/admin/users/:id/wallets": ["ADMIN"],
+    "GET /api/admin/wallets/:address/balance": ["ADMIN"],
+
+    "GET /api/admin/transactions": ["ADMIN"],
+    "GET /api/admin/users/:id/transactions": ["ADMIN"],
+    "PUT /api/admin/transactions/:txId/status": ["ADMIN"],
+
+    "GET /api/user/profile": ["USER", "ADMIN"],
+    "PUT /api/user/profile": ["USER", "ADMIN"],
+    "PUT /api/user/profile/password": ["USER", "ADMIN"],
+    "GET /api/user/wallets": ["USER", "ADMIN"],
+    "POST /api/user/wallets": ["USER", "ADMIN"],
+    "GET /api/user/transactions": ["USER", "ADMIN"],
+
+    "POST /api/payments/orders": ["USER", "ADMIN"],
+    "GET /api/payments/orders": ["USER", "ADMIN"],
+    "GET /api/payments/orders/:id": ["USER", "ADMIN"],
+    "POST /api/payments/orders/:id/wallet": ["USER", "ADMIN"],
+    "GET /api/payments/orders/:id/wallet": ["USER", "ADMIN"],
+    "GET /api/payments/wallets/:address/check": ["USER", "ADMIN"],
+    "GET /api/payments/wallets/:address/balance": ["USER", "ADMIN"],
+    "PUT /api/payments/transactions/:txId/confirm": ["USER", "ADMIN"],
+    "PUT /api/payments/orders/:id/cancel": ["USER", "ADMIN"],
+    "POST /api/payments/orders/:id/notify": ["USER", "ADMIN"],
+    "GET /api/payments/poll": ["USER", "ADMIN"]
+  }
+
+}

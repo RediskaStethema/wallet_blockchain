@@ -1,11 +1,12 @@
-import {TransactionData, UpdateProfileDto, UserProfile, WalletData} from "./types";
+import {AdminEmp, TransactionData, UpdateProfileDto, UserProfile, WalletData} from "./types.js";
 import mysql from 'mysql2/promise'
 import dotenv from 'dotenv'
-import {UserService} from "../services/UserService";
-import {adminService} from "../services/AdminServices";
+import {UserService} from "../services/UserService.js";
+import {adminService} from "../services/AdminServices.js";
 import {Request} from "express";
 import Joi from "joi";
-import {PaymentService} from "../services/PaymentService";
+import {PaymentService} from "../services/PaymentService.js";
+import {match} from "path-to-regexp";
 dotenv.config();
 
 export const registerSchema = Joi.object({
@@ -52,9 +53,17 @@ export const changePasswordSchema = Joi.object({
 });
 
 export enum Role{
-    ADMIN,
-    USER
+    ADMIN="ADMIN",
+    USER="USER",
 }
+
+export interface Rule {
+    method: string;
+    matchFn: ReturnType<typeof match>;
+    roles: Role[];
+    original: string;
+}
+
 
 export enum TransactionStatus {
     Pending = 'pending',
@@ -69,7 +78,10 @@ export enum PaymentStatus {
     Cancelled = 'cancelled',
 }
 
-
+export interface IPollingService {
+    startPolling(intervalMs?: number): void;
+    stopPolling(): void;
+}
 
 export interface DataWall {
     id: number;
@@ -112,7 +124,7 @@ export interface IPaymentService {
 
     checkIncomingPayments(address: string): Promise<PaymentData[]>;
     confirmTransaction(txId: string): Promise<void>;
-    pollIncomingTransactions(): Promise<void>;
+    pollIncomingTransactions(): Promise<PaymentData[]>;
 
     cancelOrder(orderId: number): Promise<void>;
     updateOrderStatus(orderId: number, status: PaymentStatus): Promise<void>;
@@ -157,9 +169,12 @@ export interface IAdminService {
     getAllTransactions(): Promise<TransactionData[]>;
     getTransactionsByUser(userId: number): Promise<TransactionData[]>;
     updateTransactionStatus(txId: string, status: TransactionStatus): Promise<void>;
+    registerAdmin(email: string, password: string):Promise<AdminEmp>;
 }
 
 export interface Config {
+    paths_skips:string[],
+    pathroles:Record<string, string[]>
     service_payment: PaymentService,
     service_acc: UserService
     service_admin: adminService
@@ -179,12 +194,13 @@ export const pool=mysql.createPool({
     host: process.env.DB_HOST,
     port: Number(process.env.DB_PORT) || 3306,
     user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASS || 'your_password',
-    database: process.env.DB_NAME || 'wallet_system',
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
 });
+
 
 
 

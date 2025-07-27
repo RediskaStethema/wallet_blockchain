@@ -54,5 +54,5 @@ declare module 'tronweb' {
         };
     }
 
-    export = TronWeb;
+    export default TronWeb;
 }

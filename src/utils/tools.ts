@@ -1,11 +1,19 @@
-import {Config} from "../models/modeles";
-import {UserService} from "../services/UserService";
-import {adminService} from "../services/AdminServices";
-import {tronWeb} from "../config/configurs";
-import {PaymentService} from "../services/PaymentService";
+import { Request, Response} from 'express';
 import crypto from 'crypto';
+import {AuthReq, Config, Role} from "../models/modeles.js";
+import {PaymentService} from "../services/PaymentService.js";
+import {UserService} from "../services/UserService.js";
+import {adminService} from "../services/AdminServices.js";
+import {tronWeb} from "../config/configurs_trones.js";
+import {NextFunction} from "express";
+import appconfs from "../../configures/config.json" with {type:"json"}
+import jwt from "jsonwebtoken";
+
+export const BEARER = 'Bearer ';
+export const USDT_CONTRACT =process.env.USDT_CONTR;
 
 export const  configurations:Config= {
+    ...appconfs,
     service_payment: new PaymentService(tronWeb),
     service_acc: new  UserService(tronWeb),
     service_admin: new adminService(tronWeb),
@@ -16,6 +24,13 @@ export const  configurations:Config= {
 }
 
 
+export function createToken(userId: number, role: Role): string {
+    return jwt.sign(
+        { userId, role },
+        configurations.jwt.secret,
+        { expiresIn: '7d' }
+    );
+}
 
 const ENCRYPTION_KEY = process.env.SECRET_KEY!.slice(0, 32); // ключ должен быть 32 байта
 const IV_LENGTH = 16;
@@ -27,3 +42,16 @@ const IV_LENGTH = 16;
     encrypted += cipher.final('hex');
     return iv.toString('hex') + ':' + encrypted;
 }
+
+export const skiprouts = (skips: string[]) => {
+    return (req: AuthReq, res: Response, next: NextFunction) => {
+        const pathmethod = `${req.method} ${req.path}`;
+        console.log('Checking skip:', pathmethod);
+
+        if (skips.includes(pathmethod)) {
+            return next('route');
+        }
+
+        next();
+    };
+};

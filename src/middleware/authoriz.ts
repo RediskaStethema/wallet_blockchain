@@ -1,30 +1,42 @@
-import { Request, Response, NextFunction } from 'express';
-import {configurations} from "../utils/tools";
-import jwt from "jsonwebtoken";
-import {AuthReq, Role} from "../models/modeles"
+import { Response, NextFunction } from 'express';
 
-export function authorize(allowedRoles: Role[]) {
+import {AuthReq, Role, Rule} from "../models/modeles.js"
+import {match} from "path-to-regexp"
+
+export function authorize(pathRoles: Record<string, string[]>) {
+
+    const rules: Rule[] = Object.entries(pathRoles).map(([key, roles]) => {
+        const [method, rawPath] = key.split(' ');
+        return {
+            method,
+            matchFn: match(rawPath, { decode: decodeURIComponent }),
+            roles: roles as Role[],
+            original: key,
+        };
+    });
+
     return (req: AuthReq, res: Response, next: NextFunction) => {
-        const authHeader = req.headers.authorization;
-        if (!authHeader) return res.status(401).send('No token provided');
+        const user = (req as any).user;
+        const reqMethod = req.method;
+        const reqPath = req.baseUrl + req.path;
 
-        const token = authHeader.split(' ')[1];
-        if (!token) return res.status(401).send('No token found');
+        const matchedRule = rules.find(rule =>
+            rule.method === reqMethod && rule.matchFn(reqPath)
+        );
 
-        try {
-            const payload = jwt.verify(token, configurations.jwt.secret) as {
-                userId: number;
-                role: Role;
-            };
-
-            if (!allowedRoles.includes(payload.role)) {
-                return res.status(403).send('Forbidden: insufficient rights');
-            }
-
-            req.user = payload;
-            next();
-        } catch (err) {
-            return res.status(401).send('Invalid token');
+        if (!matchedRule) {
+            return next();
         }
+
+        if (!user) {
+            return res.status(401).json({ message: 'Unauthorized: no token' });
+        }
+
+        const hasRole = matchedRule.roles.includes(user.role);
+        if (!hasRole) {
+            return res.status(403).json({ message: 'Forbidden: insufficient rights' });
+        }
+
+        next();
     };
 }

@@ -1,6 +1,9 @@
-import {IAdminService, pool, Role, TransactionStatus} from "../models/modeles";
-import {TransactionData, UserProfile, WalletData} from "../models/types";
+
 import TronWeb from "tronweb";
+import {IAdminService, pool, Role, TransactionStatus} from "../models/modeles.js";
+import {AdminEmp, TransactionData, UserProfile, WalletData} from "../models/types.js";
+import bcrypt from "bcrypt";
+import {createToken} from "../utils/tools.js";
 
 
 
@@ -78,4 +81,27 @@ export class adminService implements IAdminService {
     async updateTransactionStatus(txId: string, status: TransactionStatus): Promise<void> {
         await pool.query('UPDATE transactions SET status = ? WHERE tx_id = ?', [status, txId]);
     }
+
+    async registerAdmin(email: string, password: string) {
+        const [existingRows] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
+        if ((existingRows as any[]).length > 0) {
+            throw new Error('User already exists');
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const [result] = await pool.query(
+            'INSERT INTO users (email, password, role) VALUES (?, ?, ?)',
+            [email, hashedPassword, Role.ADMIN]
+        );
+
+        const insertResult = result as any;
+        const userId = insertResult.insertId;
+
+
+        const token =createToken(userId, Role.ADMIN);
+
+        return { id: userId, email, role: Role.ADMIN, token } as AdminEmp;
+    }
+
 }
