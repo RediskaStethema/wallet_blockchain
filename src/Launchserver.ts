@@ -4,7 +4,7 @@ import morgan from "morgan";
 import http from 'http';
 import { PollingService } from "./services/PollingService.js";
 import {configurations, skiprouts} from "./utils/tools.js";
-import { wallrauts } from "./routes/walletrouts.js";
+import { wallrauts } from "./routes/walletRouter.js";
 import { errorHandler } from "./errorHandler/errorHandler.js";
 import WebSocket, { WebSocketServer } from "ws";
 import {Authent} from "./middleware/authent.js";

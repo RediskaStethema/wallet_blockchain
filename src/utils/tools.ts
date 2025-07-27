@@ -10,7 +10,7 @@ import appconfs from "../../configures/config.json" with {type:"json"}
 import jwt from "jsonwebtoken";
 
 export const BEARER = 'Bearer ';
-export const USDT_CONTRACT =process.env.USDT_CONTR;
+export const USDT_CONTRACT =process.env.USDT_CONTR ||'no key';
 
 export const  configurations:Config= {
     ...appconfs,
@@ -33,10 +33,10 @@ export function createToken(userId: number, role: Role): string {
 }
 
 const ENCRYPTION_KEY = process.env.SECRET_KEY!.slice(0, 32); // ключ должен быть 32 байта
-const IV_LENGTH = 16;
+const IV_LENGTH = process.env.IV_LENGTH || "6";
 
  export function encryptPrivateKey(privateKey: string): string {
-    const iv = crypto.randomBytes(IV_LENGTH);
+    const iv = crypto.randomBytes(IV_LENGTH as  unknown as number);
     const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
     let encrypted = cipher.update(privateKey, 'utf8', 'hex');
     encrypted += cipher.final('hex');

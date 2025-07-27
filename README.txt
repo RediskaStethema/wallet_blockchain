@@ -14,6 +14,7 @@ JWT_SECRET=***
 JWT_EXP=1h
 SECRET_KEY=***
 USDT_CONTR=***
+IV_LENGTH = **
 
 
 
