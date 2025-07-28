@@ -88,7 +88,7 @@ export interface DataWall {
     userId?: number;
     orderId?: number;
     address: string;
-    privateKey: string;   // 🔐 зашифрованный приватный ключ (например, AES)
+    privateKey: string;   
     createdAt: Date;
 }
 
