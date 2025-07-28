@@ -5,12 +5,12 @@ import {UpdateProfileDto} from "../models/types.js";
 
 
 export class UserController {
-    // Регистрация
+
     async register(email: string, password: string) {
         return configurations.service_acc.register(email, password);
     }
 
-    // Логин
+
     async login(email: string, password: string) {
         return configurations.service_acc.login(email, password);
     }
